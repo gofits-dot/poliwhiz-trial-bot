@@ -15,6 +15,7 @@ from telegram.ext import (
 BOT_TOKEN = os.environ["BOT_TOKEN"]
 APK_URL = "https://drive.google.com/file/d/1tpQrjsEFlB_NQ1TbH12byTXZC65I_kqe/view?usp=drivesdk"
 CHANNEL_URL = "https://t.me/poliwhis"
+ADMIN_CHAT_ID = 1710023187
 
 logging.basicConfig(level=logging.INFO)
 logging.getLogger("httpx").setLevel(logging.WARNING)
@@ -81,7 +82,24 @@ async def receive_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             user.username,
             text,
         )
-        context.user_data["waiting_feedback"] = False
+                context.user_data["waiting_feedback"] = False
+
+        admin_message = (
+            "📩 Новый отзыв PoliWhiz Trial\n\n"
+            f"От: {user.full_name}\n"
+            f"Telegram ID: {user.id}\n"
+            f"Username: @{user.username if user.username else 'не указан'}\n\n"
+            f"Отзыв:\n{text}"
+        )
+
+        try:
+            await context.bot.send_message(
+                chat_id=ADMIN_CHAT_ID,
+                text=admin_message,
+            )
+        except Exception:
+            logging.exception("Не удалось отправить отзыв администратору")
+
         await update.message.reply_text(
             "Спасибо за отзыв! 🙏 Он принят. Твой отзыв поможет улучшить PoliWhiz."
         )
