@@ -76,13 +76,15 @@ async def receive_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if context.user_data.get("waiting_feedback"):
         text = update.message.text or ""
         user = update.effective_user
+
         logging.info(
             "Feedback from user_id=%s username=%s: %s",
             user.id,
             user.username,
             text,
         )
-                context.user_data["waiting_feedback"] = False
+
+        context.user_data["waiting_feedback"] = False
 
         admin_message = (
             "📩 Новый отзыв PoliWhiz Trial\n\n"
@@ -97,6 +99,7 @@ async def receive_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 chat_id=ADMIN_CHAT_ID,
                 text=admin_message,
             )
+            logging.info("Отзыв успешно отправлен администратору")
         except Exception:
             logging.exception("Не удалось отправить отзыв администратору")
 
