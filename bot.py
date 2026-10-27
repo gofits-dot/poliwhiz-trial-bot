@@ -25,7 +25,11 @@ web = Flask(__name__)
 @web.route("/")
 def health():
     return "PoliWhiz Trial bot is running", 200
-
+@web.route("/get-apk")
+def get_apk():
+    logging.info("APK link clicked")
+    from flask import redirect
+    return redirect(APK_URL, code=302)
 def run_web():
     port = int(os.environ.get("PORT", "10000"))
     web.run(host="0.0.0.0", port=port, use_reloader=False)
