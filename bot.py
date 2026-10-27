@@ -45,6 +45,27 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+
+    admin_message = (
+        "📥 Запрос на скачивание PoliWhiz Trial\n\n"
+        f"От: {user.full_name}\n"
+        f"Telegram ID: {user.id}\n"
+        f"Username: @{user.username if user.username else 'не указан'}"
+    )
+
+    try:
+        await context.bot.send_message(
+            chat_id=ADMIN_CHAT_ID,
+            text=admin_message,
+        )
+        logging.info(
+            "Уведомление о скачивании отправлено: user_id=%s",
+            user.id,
+        )
+    except Exception:
+        logging.exception("Не удалось отправить уведомление о скачивании")
+
     await update.message.reply_text(
         "📥 Скачать PoliWhiz-1 Trial:\n"
         f"{APK_URL}\n\n"
