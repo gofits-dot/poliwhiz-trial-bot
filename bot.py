@@ -13,7 +13,7 @@ from telegram.ext import (
 )
 
 BOT_TOKEN = os.environ["BOT_TOKEN"]
-APK_URL = "https://drive.google.com/file/d/1tpQrjsEFlB_NQ1TbH12byTXZC65I_kqe/view?usp=drivesdk"
+APK_URL = "https://drive.google.com/file/d/1SHi6ckfkMSlqD0IUq_Yt4i71BAqyiXZm/view?usp=drivesdk"
 CHANNEL_URL = "https://t.me/poliwhis"
 ADMIN_CHAT_ID = 1710023187
 
