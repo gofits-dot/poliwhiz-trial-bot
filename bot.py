@@ -2,6 +2,8 @@ import asyncio
 import logging
 import os
 import threading
+import requests
+from datetime import datetime
 from flask import Flask
 from telegram import Update
 from telegram.ext import (
@@ -21,6 +23,39 @@ logging.basicConfig(level=logging.INFO)
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
 web = Flask(__name__)
+
+def send_email_notification():
+    api_key = os.environ.get("RESEND_API_KEY")
+
+    if not api_key:
+        logging.error("RESEND_API_KEY is not configured")
+        return
+
+    payload = {
+        "from": "PoliWhiz <onboarding@resend.dev>",
+        "to": ["gofits@gmail.com"],
+        "subject": "PoliWhiz Trial — переход к скачиванию",
+        "text": (
+            "Кто-то перешёл по ссылке для скачивания PoliWhiz Trial.\n"
+            "Время события: " + datetime.now().strftime("%d.%m.%Y %H:%M:%S")
+        ),
+    }
+
+    try:
+        response = requests.post(
+            "https://api.resend.com/emails",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            },
+            json=payload,
+            timeout=10,
+        )
+        response.raise_for_status()
+        logging.info("Download email notification sent successfully")
+
+    except Exception:
+        logging.exception("Failed to send download email notification")
 
 telegram_app = None
 telegram_loop = None
@@ -50,9 +85,7 @@ def get_apk():
                     "📥 Нажатие ссылки PoliWhiz Trial!\n\n"
                     "Пользователь перешёл к скачиванию APK.\n"
                     "Время события: "
-                    + __import__("datetime").datetime.now().strftime(
-                        "%d.%m.%Y %H:%M:%S"
-                    )
+                    + datetime.now().strftime("%d.%m.%Y %H:%M:%S")
                 ),
             ),
             telegram_loop,
@@ -63,6 +96,8 @@ def get_apk():
 
     except Exception:
         logging.exception("Failed to send download click notification")
+
+    send_email_notification()
 
     from flask import redirect
     return redirect(APK_URL, code=302)
