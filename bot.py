@@ -1,4 +1,4 @@
-
+import asyncio
 import logging
 import os
 import threading
@@ -22,14 +22,51 @@ logging.getLogger("httpx").setLevel(logging.WARNING)
 
 web = Flask(__name__)
 
+telegram_app = None
+telegram_loop = None
+
+
+async def setup_telegram(application):
+    global telegram_app, telegram_loop
+    telegram_app = application
+    telegram_loop = asyncio.get_running_loop()
+    logging.info("Telegram event loop is ready for download notifications")
 @web.route("/")
 def health():
     return "PoliWhiz Trial bot is running", 200
+
 @web.route("/get-apk")
 def get_apk():
     logging.info("APK link clicked")
+
+    try:
+        if telegram_app is None or telegram_loop is None:
+            raise RuntimeError("Telegram bot is not ready")
+
+        future = asyncio.run_coroutine_threadsafe(
+            telegram_app.bot.send_message(
+                chat_id=ADMIN_CHAT_ID,
+                text=(
+                    "📥 Нажатие ссылки PoliWhiz Trial!\n\n"
+                    "Пользователь перешёл к скачиванию APK.\n"
+                    "Время события: "
+                    + __import__("datetime").datetime.now().strftime(
+                        "%d.%m.%Y %H:%M:%S"
+                    )
+                ),
+            ),
+            telegram_loop,
+        )
+
+        future.result(timeout=10)
+        logging.info("Download click notification sent to administrator")
+
+    except Exception:
+        logging.exception("Failed to send download click notification")
+
     from flask import redirect
     return redirect(APK_URL, code=302)
+
 def run_web():
     port = int(os.environ.get("PORT", "10000"))
     web.run(host="0.0.0.0", port=port, use_reloader=False)
@@ -135,7 +172,12 @@ async def receive_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 def main():
     threading.Thread(target=run_web, daemon=True).start()
 
-    app = Application.builder().token(BOT_TOKEN).build()
+    app = (
+    Application.builder()
+    .token(BOT_TOKEN)
+    .post_init(setup_telegram)
+    .build()
+)
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("download", download))
     app.add_handler(CommandHandler("help", help_command))
