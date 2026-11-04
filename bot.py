@@ -231,7 +231,7 @@ async def post_to_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [
             InlineKeyboardButton(
                 "PoliWhiz Trial",
-                url="https://t.me/poliwhizbot"
+                url="https://poliwhiz.com/splitter"
             ),
         ],
     ])
