@@ -5,7 +5,7 @@ import threading
 import requests
 from datetime import datetime
 from flask import Flask
-from telegram import Update
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -203,6 +203,46 @@ async def receive_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(
             "Спасибо за отзыв! 🙏 Он принят. Твой отзыв поможет улучшить PoliWhiz."
         )
+async def post_to_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
+
+    if user.id != ADMIN_CHAT_ID:
+        await update.message.reply_text("У вас нет доступа к этой команде.")
+        return
+
+    post_text = update.message.text.partition(" ")[2].strip()
+
+    if not post_text:
+        await update.message.reply_text(
+            "Использование:\n/post Текст публикации"
+        )
+        return
+
+    keyboard = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("Website", url="https://poliwhiz.com"),
+        ],
+        [
+            InlineKeyboardButton(
+                "Audio Tools",
+                url="https://t.me/PoliWhizAudioToolsBot"
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                "PoliWhiz Trial",
+                url="https://t.me/poliwhizbot"
+            ),
+        ],
+    ])
+
+    await context.bot.send_message(
+        chat_id="@poliwhis",
+        text=post_text,
+        reply_markup=keyboard
+    )
+
+    await update.message.reply_text("Публикация успешно отправлена в канал!")
 
 def main():
     threading.Thread(target=run_web, daemon=True).start()
@@ -217,6 +257,7 @@ def main():
     app.add_handler(CommandHandler("download", download))
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("feedback", feedback))
+    app.add_handler(CommandHandler("post", post_to_channel))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, receive_message))
 
     app.run_polling()
