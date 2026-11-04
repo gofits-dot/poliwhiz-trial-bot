@@ -225,13 +225,13 @@ async def post_to_channel(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [
             InlineKeyboardButton(
                 "Audio Tools",
-                url="https://t.me/PoliWhizAudioToolsBot"
+                url="https://poliwhiz.com/splitter"
             ),
         ],
         [
             InlineKeyboardButton(
                 "PoliWhiz Trial",
-                url="https://poliwhiz.com/splitter"
+                url="https://t.me/PoliWhizBot"
             ),
         ],
     ])
