@@ -144,7 +144,7 @@ async def download(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await update.message.reply_text(
         "📥 Скачать PoliWhiz-1 Trial:\n"
-        "https://poliwhiz.fadehost.app/get-apk\n\n"
+        "https://poliwhiz.com/get-apk\n\n"
         "После скачивания открой APK. Если Android попросит разрешение "
         "на установку из этого источника, разреши его и повтори установку."
     )
