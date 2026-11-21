@@ -1,6 +1,10 @@
 import asyncio
 import logging
 import os
+import hashlib
+import hmac
+import time
+from urllib.parse import urlencode
 import threading
 import requests
 from datetime import datetime
@@ -145,6 +149,28 @@ async def send_subscription_prompt(message):
 
 
 async def send_download_link(target, context: ContextTypes.DEFAULT_TYPE, user):
+    secret = os.environ.get("DOWNLOAD_SECRET")
+    if not secret:
+        logging.error("DOWNLOAD_SECRET is not configured")
+        await target.reply_text(
+            "Сервис выдачи ссылки временно недоступен. Попробуй позже."
+        )
+        return
+
+    expires = int(time.time()) + 300
+    payload = f"{user.id}:{expires}"
+    signature = hmac.new(
+        secret.encode("utf-8"),
+        payload.encode("utf-8"),
+        hashlib.sha256,
+    ).hexdigest()
+    query = urlencode({
+        "user_id": user.id,
+        "expires": expires,
+        "signature": signature,
+    })
+    download_url = f"{DOWNLOAD_PAGE_URL}?{query}"
+
     admin_message = (
         "📥 Запрос на скачивание PoliWhiz Trial\n\n"
         f"От: {user.full_name}\n"
@@ -165,7 +191,7 @@ async def send_download_link(target, context: ContextTypes.DEFAULT_TYPE, user):
     await target.reply_text(
         "✅ Подписка подтверждена!\n\n"
         "📥 Скачать PoliWhiz-1 Trial:\n"
-        f"{DOWNLOAD_PAGE_URL}\n\n"
+        f"{download_url}\n\n"
         "После скачивания открой APK. Если Android попросит разрешение "
         "на установку из этого источника, разреши его и повтори установку."
     )
